@@ -256,6 +256,14 @@
       return [street, tags["addr:postcode"], tags["addr:city"] || tags["addr:place"]].filter(Boolean).join(", ") || "Adresse nicht in OSM hinterlegt";
     }
 
+    function mapsSearchUrl(query) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    }
+
+    function mapsDirectionsUrl(location) {
+      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${location.name} ${location.address}`)}`;
+    }
+
     function nearestLocation(state) {
       if (!userLocation || !state.locations.length) return null;
       return state.locations.reduce((nearest, location) => {
@@ -287,7 +295,7 @@
             fillColor: supplier.color,
             fillOpacity: 1
           });
-          marker.bindPopup(`<div class="popup-title">${escapeHTML(location.name)}</div><div class="popup-copy">${escapeHTML(supplier.name)}<br>${escapeHTML(location.address)}${location.distance != null ? `<br>${location.distance.toFixed(1).replace(".", ",")} km von deinem Standort` : ""}</div>`);
+          marker.bindPopup(`<div class="popup-title">${escapeHTML(location.name)}</div><div class="popup-copy">${escapeHTML(supplier.name)}<br>${escapeHTML(location.address)}${location.distance != null ? `<br>${location.distance.toFixed(1).replace(".", ",")} km von deinem Standort` : ""}<br><a href="${mapsDirectionsUrl(location)}" target="_blank" rel="noreferrer">Route öffnen ↗</a></div>`);
           marker.addTo(group);
         });
         group.addTo(map);
@@ -307,12 +315,9 @@
       const rows = active.map((supplier) => ({ supplier, nearest: nearestLocation(supplierState.get(supplier.id)) }));
       const found = rows.filter((row) => row.nearest);
       document.getElementById("result-count").textContent = `${String(found.length).padStart(2, "0")} / ${String(active.length).padStart(2, "0")}`;
-      if (!found.length) {
-        list.innerHTML = '<div class="empty-state">Im Umkreis wurden keine passenden Filialen in OpenStreetMap gefunden. Das bedeutet nicht, dass der Anbieter keine Abholstation hat.</div>';
-        return;
-      }
-      list.innerHTML = rows.map(({ supplier, nearest }, index) => {
-        if (!nearest) return `<div class="result-item"><span class="result-number" style="color:${supplier.color}">—</span><div class="result-main"><div class="result-name">${supplier.name}</div><div class="result-address">Keine passende Filiale in OSM gefunden</div></div><a class="result-distance" href="https://www.google.com/maps/search/${encodeURIComponent(`${supplier.name} ${document.getElementById("address").value}`)}" target="_blank" rel="noreferrer" aria-label="${supplier.name} in Karten suchen">Suchen ↗</a></div>`;
+      const notice = found.length ? "" : '<div class="empty-state">Keine passenden OSM-Filialen gefunden. Über die Anbietersuche kannst du nahe Abholstationen in Google Maps aufrufen.</div>';
+      list.innerHTML = notice + rows.map(({ supplier, nearest }, index) => {
+        if (!nearest) return `<div class="result-item"><span class="result-number" style="color:${supplier.color}">—</span><div class="result-main"><div class="result-name">${supplier.name}</div><div class="result-address">Keine passende Filiale in OSM gefunden</div></div><a class="result-distance" href="${mapsSearchUrl(`${supplier.name} ${document.getElementById("address").value}`)}" target="_blank" rel="noreferrer" aria-label="${supplier.name} in Karten suchen">Suchen ↗</a></div>`;
         return `<div class="result-item" style="animation-delay:${index * 35}ms"><span class="result-number" style="color:${supplier.color}">${String(index + 1).padStart(2, "0")}</span><div class="result-main"><div class="result-name">${escapeHTML(nearest.name)}</div><div class="result-address">${escapeHTML(supplier.name)} · ${escapeHTML(nearest.address)}</div></div><span class="result-distance">${nearest.distance.toFixed(1).replace(".", ",")} km</span></div>`;
       }).join("");
     }
@@ -330,7 +335,7 @@
       const [lat, lon] = userLocation;
       const query = `[out:json][timeout:30];nwr(around:250000,${lat},${lon})[~"^(name|brand|operator|name:de)$"~"Granzow|BEWO|Fischer.?Zander|UNI.?ELEKTRO|Sonepar|W.rth",i];out center tags;`;
       try {
-        const response = await fetch("https://overpass-api.de/api/interpreter", {
+        const response = await fetch("https://overpass.osm.ch/api/interpreter", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
           body: `data=${encodeURIComponent(query)}`
