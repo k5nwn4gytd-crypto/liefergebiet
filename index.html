@@ -405,8 +405,16 @@
       document.getElementById("search-button").disabled = true;
       loadStaticLocations();
       renderSuppliers();
-      drawLayers();
       renderResults();
+      try {
+        drawLayers();
+      } catch (error) {
+        feedback.textContent = "Abholstationen angezeigt; Kartenradien konnten nicht gezeichnet werden.";
+        status.textContent = "Karte konnte nicht aktualisiert werden";
+        document.getElementById("search-button").disabled = false;
+        console.error(error);
+        return;
+      }
       const totalLocations = suppliers.reduce((count, supplier) => count + supplier.locations.length, 0);
       feedback.textContent = `${totalLocations} Abholstationen für ${suppliers.length} Lieferanten geladen.`;
       status.textContent = "Lieferantendaten geladen";
@@ -468,8 +476,13 @@
 
     loadStaticLocations();
     renderSuppliers();
-    drawLayers();
     renderResults();
+    try {
+      drawLayers();
+    } catch (error) {
+      document.getElementById("map-status").textContent = "Karte konnte nicht aktualisiert werden";
+      console.error(error);
+    }
     window.addEventListener("load", () => setTimeout(() => map.invalidateSize(), 50));
   </script>
 </body>
