@@ -77,7 +77,7 @@
     .result-number { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: var(--ink); background: #f0f0e9; font-family: "DM Mono", monospace; font-size: 10px; }
     .result-main { min-width: 0; }
     .result-name { font-size: 11px; font-weight: 800; line-height: 1.35; }
-    .result-address { margin-top: 3px; overflow: hidden; color: var(--muted); font-size: 10px; line-height: 1.45; text-overflow: ellipsis; }
+    .result-address { margin-top: 3px; overflow-wrap: anywhere; color: var(--muted); font-size: 10px; line-height: 1.45; }
     .result-distance { padding-top: 2px; color: var(--green); font-family: "DM Mono", monospace; font-size: 10px; white-space: nowrap; }
     .empty-state { padding: 13px 0 18px; color: var(--muted); font-size: 11px; line-height: 1.6; }
     .disclaimer { margin: auto 16px 16px; padding: 11px 12px; border-left: 3px solid var(--yellow); background: #f8f6e9; color: #62645a; font-size: 10px; line-height: 1.5; }
@@ -143,7 +143,7 @@
         </div>
         <div class="supplier-list" id="supplier-list"></div>
         <div class="section-head results-head">
-          <h2 class="section-title">Nächste Abholstation</h2>
+          <h2 class="section-title">Nächste Abholstationen</h2>
           <span class="section-count" id="result-count">--</span>
         </div>
         <div class="results-list" id="results-list" aria-live="polite">
@@ -156,13 +156,14 @@
         <div class="map-legend">
           <div class="legend-title">Kartenebenen</div>
           <div class="legend-entry"><span class="legend-pin"></span><span>Dein Standort</span></div>
-          <div class="legend-entry"><span class="legend-ring"></span><span>Planungsradius je Anbieter, um alle Stationen</span></div>
+          <div class="legend-entry"><span class="legend-ring"></span><span>Gebündelter Radius je Lieferant</span></div>
         </div>
         <div class="map-attribution">Kartendaten &copy; OpenStreetMap-Mitwirkende</div>
       </section>
     </main>
   </div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
   <script>
     const suppliers = [
       { id: "granzow", name: "Granzow", color: "#e45d40", coverageCities: ["Stuttgart", "Ulm", "Heilbronn", "Reutlingen", "Freiburg", "Karlsruhe"], locations: [
@@ -320,6 +321,14 @@
       });
     }
 
+    function mapsSearchUrl(query) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    }
+
+    function mapsDirectionsUrl(location) {
+      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${location.name} ${location.address}`)}`;
+    }
+
     function nearestLocation(state) {
       if (!userLocation || !state.locations.length) return null;
       return state.locations.reduce((nearest, location) => {
@@ -335,15 +344,25 @@
         const state = supplierState.get(supplier.id);
         if (!state.enabled) return;
         const group = L.layerGroup();
-        state.locations.forEach((location) => {
-          L.circle(location.coords, {
-            radius: state.radius * 1000,
-            color: supplier.color,
-            weight: 1.5,
-            opacity: .72,
-            fillColor: supplier.color,
-            fillOpacity: .055
+        if (state.locations.length) {
+          const buffers = state.locations.map((location) => (
+            turf.buffer(turf.point([location.coords[1], location.coords[0]]), state.radius, {
+              units: "kilometers",
+              steps: 32
+            })
+          ));
+          const coverage = buffers.length === 1 ? buffers[0] : turf.union(turf.featureCollection(buffers));
+          L.geoJSON(coverage, {
+            style: {
+              color: supplier.color,
+              weight: 1.5,
+              opacity: .72,
+              fillColor: supplier.color,
+              fillOpacity: .08
+            }
           }).addTo(group);
+        }
+        state.locations.forEach((location) => {
           const marker = L.circleMarker(location.coords, {
             radius: 6,
             color: "#fffefa",
@@ -362,17 +381,16 @@
 
     function renderResults() {
       const list = document.getElementById("results-list");
-      const active = suppliers.filter((supplier) => supplierState.get(supplier.id).enabled);
       if (!userLocation) {
         list.innerHTML = '<div class="empty-state">Nach einer Standortsuche erscheinen hier die jeweils nächsten gefundenen Filialen.</div>';
         document.getElementById("result-count").textContent = "--";
         return;
       }
-      const rows = active.map((supplier) => ({ supplier, nearest: nearestLocation(supplierState.get(supplier.id)) }))
+      const rows = suppliers.map((supplier) => ({ supplier, nearest: nearestLocation(supplierState.get(supplier.id)) }))
         .sort((a, b) => (a.nearest?.distance ?? Infinity) - (b.nearest?.distance ?? Infinity));
       const found = rows.filter((row) => row.nearest);
-      document.getElementById("result-count").textContent = `${String(found.length).padStart(2, "0")} / ${String(active.length).padStart(2, "0")}`;
-      const notice = found.length ? "" : '<div class="empty-state">Für die aktivierten Lieferanten sind keine Abholstationen hinterlegt.</div>';
+      document.getElementById("result-count").textContent = `${String(found.length).padStart(2, "0")} / ${String(suppliers.length).padStart(2, "0")}`;
+      const notice = found.length ? "" : '<div class="empty-state">Für die Lieferanten sind keine Abholstationen hinterlegt.</div>';
       list.innerHTML = notice + rows.map(({ supplier, nearest }, index) => {
         if (!nearest) return `<div class="result-item"><span class="result-number" style="color:${supplier.color}">—</span><div class="result-main"><div class="result-name">${escapeHTML(supplier.name)}</div><div class="result-address">Keine Abholstation hinterlegt</div></div></div>`;
         return `<div class="result-item" style="animation-delay:${index * 35}ms"><span class="result-number" style="color:${supplier.color}">${String(index + 1).padStart(2, "0")}</span><div class="result-main"><div class="result-name">${escapeHTML(nearest.name)}</div><div class="result-address">${escapeHTML(supplier.name)} · ${escapeHTML(nearest.address)}</div></div><span class="result-distance">${nearest.distance.toFixed(1).replace(".", ",")} km</span></div>`;
