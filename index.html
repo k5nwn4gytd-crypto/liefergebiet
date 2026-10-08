@@ -137,18 +137,18 @@
           </div>
           <p class="search-feedback" id="search-feedback" aria-live="polite">Adresse suchen oder den Standort-Button nutzen.</p>
         </form>
+        <div class="section-head results-head">
+          <h2 class="section-title">Nächste Abholstationen je Lieferant</h2>
+          <span class="section-count" id="result-count">--</span>
+        </div>
+        <div class="results-list" id="results-list" aria-live="polite">
+          <div class="empty-state">Standort eingeben: Hier erscheinen die nächste Abholstation und ihre Adresse für jeden Lieferanten.</div>
+        </div>
         <div class="section-head">
           <h2 class="section-title">Lieferanten &amp; Lieferradius</h2>
           <span class="section-count" id="supplier-count">06 AN</span>
         </div>
         <div class="supplier-list" id="supplier-list"></div>
-        <div class="section-head results-head">
-          <h2 class="section-title">Nächste Abholstationen</h2>
-          <span class="section-count" id="result-count">--</span>
-        </div>
-        <div class="results-list" id="results-list" aria-live="polite">
-          <div class="empty-state">Nach einer Standortsuche erscheinen hier die jeweils nächsten gefundenen Filialen.</div>
-        </div>
         <div class="disclaimer">Der Radius ist pro Anbieter einstellbar und gilt für alle hinterlegten Abholstationen. Er ist ein Planungswert, kein offizielles Liefergebiet. Lieferfähigkeit bitte beim Anbieter bestätigen.</div>
       </aside>
       <section class="map-wrap" aria-label="Karte mit Lieferanten und Abholstationen">
@@ -382,7 +382,7 @@
     function renderResults() {
       const list = document.getElementById("results-list");
       if (!userLocation) {
-        list.innerHTML = '<div class="empty-state">Nach einer Standortsuche erscheinen hier die jeweils nächsten gefundenen Filialen.</div>';
+        list.innerHTML = '<div class="empty-state">Standort eingeben: Hier erscheinen die nächste Abholstation und ihre Adresse für jeden Lieferanten.</div>';
         document.getElementById("result-count").textContent = "--";
         return;
       }
