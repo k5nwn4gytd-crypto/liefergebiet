@@ -1127,36 +1127,38 @@
     function drawLayers() {
       for (const layer of supplierLayers.values()) map.removeLayer(layer);
       supplierLayers.clear();
-      suppliers.forEach((supplier) => {
-        const state = supplierState.get(supplier.id);
-        if (!state.enabled) return;
-        const group = L.layerGroup();
-        if (showRadii) {
+      [...suppliers]
+        .sort((a, b) => b.locations.length - a.locations.length)
+        .forEach((supplier) => {
+          const state = supplierState.get(supplier.id);
+          if (!state.enabled) return;
+          const group = L.layerGroup();
+          if (showRadii) {
+            state.locations.forEach((location) => {
+              L.circle(location.coords, {
+                radius: state.radius * 1000,
+                color: supplier.color,
+                weight: 1,
+                opacity: .72,
+                fillColor: supplier.color,
+                fillOpacity: .025
+              }).addTo(group);
+            });
+          }
+          group.addTo(map);
+          supplierLayers.set(supplier.id, group);
           state.locations.forEach((location) => {
-            L.circle(location.coords, {
-              radius: state.radius * 1000,
-              color: supplier.color,
-              weight: 1,
-              opacity: .72,
+            const marker = L.circleMarker(location.coords, {
+              radius: 6,
+              color: "#fffefa",
+              weight: 2,
               fillColor: supplier.color,
-              fillOpacity: .025
-            }).addTo(group);
+              fillOpacity: 1
+            });
+            marker.bindPopup(`<div class="popup-title">${escapeHTML(location.name)}</div><div class="popup-copy">${escapeHTML(supplier.name)}<br>${escapeHTML(location.address)}${location.distance != null ? `<br>${location.distance.toFixed(1).replace(".", ",")} km von deinem Standort` : ""}<br><a href="${mapsDirectionsUrl(location)}" target="_blank" rel="noreferrer">Route öffnen ↗</a></div>`);
+            marker.addTo(group);
           });
-        }
-        group.addTo(map);
-        supplierLayers.set(supplier.id, group);
-        state.locations.forEach((location) => {
-          const marker = L.circleMarker(location.coords, {
-            radius: 6,
-            color: "#fffefa",
-            weight: 2,
-            fillColor: supplier.color,
-            fillOpacity: 1
-          });
-          marker.bindPopup(`<div class="popup-title">${escapeHTML(location.name)}</div><div class="popup-copy">${escapeHTML(supplier.name)}<br>${escapeHTML(location.address)}${location.distance != null ? `<br>${location.distance.toFixed(1).replace(".", ",")} km von deinem Standort` : ""}<br><a href="${mapsDirectionsUrl(location)}" target="_blank" rel="noreferrer">Route öffnen ↗</a></div>`);
-          marker.addTo(group);
         });
-      });
       if (userLocation && userMarker) userMarker.bringToFront();
     }
 
