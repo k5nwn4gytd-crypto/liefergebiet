@@ -169,7 +169,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     const suppliers = [
-      { id: "granzow", name: "Granzow", color: "#e45d40", coverageCities: ["Stuttgart", "Ulm", "Heilbronn", "Reutlingen", "Freiburg", "Karlsruhe"], locations: [
+      { id: "granzow", name: "Granzow", color: "#d55e00", coverageCities: ["Stuttgart", "Ulm", "Heilbronn", "Reutlingen", "Freiburg", "Karlsruhe"], locations: [
         { name: "Granzow", address: "Karl-Wüst-Straße 17, 74076 Heilbronn", coords: [49.1398, 9.2157] },
         { name: "Granzow", address: "Hertichstraße 27, 71229 Leonberg", coords: [48.7987, 9.0045] },
         { name: "Granzow", address: "Am Heilbrunnen 91, 72766 Reutlingen", coords: [48.4902, 9.2117] },
@@ -177,7 +177,7 @@
         { name: "Granzow", address: "Austraße 49, 78727 Oberndorf am Neckar", coords: [48.3048, 8.5539] },
         { name: "Granzow", address: "Waldstraße 43, 64658 Fürth", coords: [49.6363, 8.7748] }
       ] },
-      { id: "bewo", name: "BEWO", color: "#d8a52e", coverageCities: ["Stuttgart", "Reutlingen", "Tübingen", "Böblingen", "Esslingen", "Nürtingen", "Pfullingen", "Ludwigsburg", "Göppingen", "Kirchheim/Teck", "Herrenberg", "Calw", "Rottenburg", "Hechingen", "Schwäbisch Gmünd"], locations: [
+      { id: "bewo", name: "BEWO", color: "#e6ab02", coverageCities: ["Stuttgart", "Reutlingen", "Tübingen", "Böblingen", "Esslingen", "Nürtingen", "Pfullingen", "Ludwigsburg", "Göppingen", "Kirchheim/Teck", "Herrenberg", "Calw", "Rottenburg", "Hechingen", "Schwäbisch Gmünd"], locations: [
         { name: "BEWO", address: "Daimlerstraße 14, 72793 Pfullingen", coords: [48.4792, 9.2249] },
         { name: "BEWO", address: "Wendlinger Straße 56, 72622 Nürtingen", coords: [48.6194, 9.3332] },
         { name: "BEWO", address: "Kesselstraße 25, 70327 Stuttgart-Wangen", coords: [48.7818, 9.1795] },
@@ -209,7 +209,7 @@
         { name: "Gäfgen Elektrogroßhandel GmbH", address: "Industriestraße 8, 09496 Marienberg", coords: [50.6455, 13.1808] },
         { name: "Trafo Schneider GmbH", address: "Waidmattenstraße 8, 79232 March-Buchheim", coords: [48.0596, 7.7709] }
       ] },
-      { id: "fischer-zander", name: "Fischer Zander", color: "#3976ad", coverageCities: ["Albstadt", "Tuttlingen", "Reutlingen", "Esslingen", "Weingarten", "Pforzheim", "Erlenbach", "Heidenheim", "Neu-Ulm"], locations: [
+      { id: "fischer-zander", name: "Fischer Zander", color: "#0072b2", coverageCities: ["Albstadt", "Tuttlingen", "Reutlingen", "Esslingen", "Weingarten", "Pforzheim", "Erlenbach", "Heidenheim", "Neu-Ulm"], locations: [
         { name: "Fischer Zander", address: "Wolf-Hirth-Straße 20, 71034 Böblingen", coords: [48.6851, 9.0227] },
         { name: "Fischer Zander", address: "Albstraße 38, 72764 Reutlingen", coords: [48.4836, 9.2166] },
         { name: "Fischer Zander", address: "Röntgenstraße 9, 73730 Esslingen am Neckar-Simau", coords: [48.7407, 9.3254] },
@@ -231,7 +231,7 @@
         { name: "Fischer Zander", address: "Martinistraße 52-54, 47608 Geldern", coords: [51.5277, 6.2945] },
         { name: "Fischer Zander", address: "Oskar-Barnack-Straße 11, 35606 Solms", coords: [50.5433, 8.3901] }
       ] },
-      { id: "uni-elektro", name: "UNI ELEKTRO", color: "#86559a", coverageCities: ["Stuttgart/Böblingen", "Karlsruhe/Pforzheim", "Mannheim/Heidelberg", "Heilbronn", "Tübingen/Reutlingen", "Ulm/Heidenheim", "Freiburg", "Bodensee", "Rheinland-Pfalz", "Hessen", "Nordrhein-Westfalen", "Niedersachsen", "Sachsen/Thüringen", "Berlin/Brandenburg", "Bayern", "Schleswig-Holstein"], locations: [
+      { id: "uni-elektro", name: "UNI ELEKTRO", color: "#cc79a7", coverageCities: ["Stuttgart/Böblingen", "Karlsruhe/Pforzheim", "Mannheim/Heidelberg", "Heilbronn", "Tübingen/Reutlingen", "Ulm/Heidenheim", "Freiburg", "Bodensee", "Rheinland-Pfalz", "Hessen", "Nordrhein-Westfalen", "Niedersachsen", "Sachsen/Thüringen", "Berlin/Brandenburg", "Bayern", "Schleswig-Holstein"], locations: [
         { name: "UNI ELEKTRO", address: "Ziegelstraße 4, 76185 Karlsruhe-Grünwinkel", coords: [48.9961, 8.3820] },
         { name: "UNI ELEKTRO", address: "Ludwig-Erhard-Straße 21-39, 65760 Eschborn", coords: [50.1430, 8.5700] },
         { name: "UNI ELEKTRO", address: "Hatschekstraße 5/1, 69126 Heidelberg", coords: [49.4050, 8.6940] },
@@ -297,7 +297,7 @@
         { name: "Kluxen", address: "Am Torney 39, 23970 Wismar", coords: [53.9055, 11.4696] },
         { name: "Kluxen", address: "Chausseestraße 42, 17438 Wolgast", coords: [54.0517, 13.7691] }
       ] },
-      { id: "sonepar", name: "Sonepar", color: "#159c91", coverageCities: ["Stuttgart/Böblingen", "Esslingen/Göppingen/Reutlingen", "Heilbronn/Pforzheim", "Karlsruhe/Mannheim/Heidelberg", "Freiburg/Offenburg", "Ulm/Heidenheim", "Bodensee/Singen", "Bayern", "Rheinland-Pfalz/Hessen", "NRW", "Nord-/Ostdeutschland"], locations: [
+      { id: "sonepar", name: "Sonepar", color: "#009e73", coverageCities: ["Stuttgart/Böblingen", "Esslingen/Göppingen/Reutlingen", "Heilbronn/Pforzheim", "Karlsruhe/Mannheim/Heidelberg", "Freiburg/Offenburg", "Ulm/Heidenheim", "Bodensee/Singen", "Bayern", "Rheinland-Pfalz/Hessen", "NRW", "Nord-/Ostdeutschland"], locations: [
         { name: "Sonepar", address: "Murrstraße 7, 70806 Kornwestheim", coords: [48.8641, 9.2076] },
         { name: "Sonepar", address: "Röntgenstraße 17, 73730 Esslingen", coords: [48.7219, 9.3501] },
         { name: "Sonepar", address: "Hundsschleesstraße 26, 72766 Reutlingen", coords: [48.5092, 9.2307] },
@@ -363,7 +363,7 @@
         { name: "Sonepar", address: "Worblentalstraße 28, 3063 Ittigen", coords: [46.9728, 7.4879] },
         { name: "Sonepar", address: "Kantonsstraße 57, 3930 Visp-Eyholz", coords: [46.3181, 7.8962] }
       ] },
-      { id: "wuerth", name: "Würth", color: "#c83e39", coverageCities: ["Stuttgart/Böblingen", "Reutlingen/Tübingen/Esslingen", "Heilbronn/Ludwigsburg", "Karlsruhe/Pforzheim", "Ulm/Heidenheim", "Freiburg/Offenburg", "Bodensee/Ravensburg", "Bayern", "Rheinland-Pfalz/Hessen", "NRW", "Nord- und Ostdeutschland"], locations: [
+      { id: "wuerth", name: "Würth", color: "#6f4c9b", coverageCities: ["Stuttgart/Böblingen", "Reutlingen/Tübingen/Esslingen", "Heilbronn/Ludwigsburg", "Karlsruhe/Pforzheim", "Ulm/Heidenheim", "Freiburg/Offenburg", "Bodensee/Ravensburg", "Bayern", "Rheinland-Pfalz/Hessen", "NRW", "Nord- und Ostdeutschland"], locations: [
         { name: "Würth", address: "Hanns-Klemm-Straße 46, 71034 Böblingen", coords: [48.679723, 8.976502] },
         { name: "Würth", address: "Weiherstraße 7, 71065 Sindelfingen", coords: [48.6975, 9.0039] },
         { name: "Würth", address: "Ohmstraße 5/3, 71083 Herrenberg", coords: [48.5958, 8.8721] },
@@ -939,7 +939,7 @@
         { name: "Würth", address: "Burgkirchener Straße 145, 84489 Burghausen", coords: [48.164189, 12.807983] },
         { name: "Würth", address: "Carl-Zeiss-Straße 2, 21614 Buxtehude", coords: [53.452335, 9.762705] }
       ] },
-      { id: "hilti", name: "Hilti", color: "#d52b1e", locations: [
+      { id: "hilti", name: "Hilti", color: "#d62728", locations: [
         { name: "Hilti", address: "Grüner Weg 115, 52070 Aachen", coords: [50.7900, 6.1010] },
         { name: "Hilti", address: "Willy-Messerschmitt-Straße 8/1, 73457 Aalen-Essingen", coords: [48.8070, 10.0150] },
         { name: "Hilti", address: "Biegenhofstraße 8, 96103 Hallstadt", coords: [49.9300, 10.8750] },
