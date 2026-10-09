@@ -163,7 +163,6 @@
     </main>
   </div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
   <script>
     const suppliers = [
       { id: "granzow", name: "Granzow", color: "#e45d40", coverageCities: ["Stuttgart", "Ulm", "Heilbronn", "Reutlingen", "Freiburg", "Karlsruhe"], locations: [
@@ -1023,7 +1022,7 @@
       suppliers.forEach((supplier) => localStorage.setItem(`radius-${supplier.id}`, String(defaultRadius)));
       localStorage.setItem(radiusMigrationKey, "50-km-v1");
     }
-    const map = L.map("map", { zoomControl: false }).setView([51.1, 10.4], 6);
+    const map = L.map("map", { zoomControl: false, preferCanvas: true }).setView([51.1, 10.4], 6);
     L.control.zoom({ position: "topright" }).addTo(map);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -1127,24 +1126,16 @@
         const state = supplierState.get(supplier.id);
         if (!state.enabled) return;
         const group = L.layerGroup();
-        if (state.locations.length) {
-          const buffers = state.locations.map((location) => (
-            turf.buffer(turf.point([location.coords[1], location.coords[0]]), state.radius, {
-              units: "kilometers",
-              steps: 32
-            })
-          ));
-          const coverage = buffers.length === 1 ? buffers[0] : turf.union(turf.featureCollection(buffers));
-          L.geoJSON(coverage, {
-            style: {
-              color: supplier.color,
-              weight: 1.5,
-              opacity: .72,
-              fillColor: supplier.color,
-              fillOpacity: .08
-            }
+        state.locations.forEach((location) => {
+          L.circle(location.coords, {
+            radius: state.radius * 1000,
+            color: supplier.color,
+            weight: 1,
+            opacity: .72,
+            fillColor: supplier.color,
+            fillOpacity: .025
           }).addTo(group);
-        }
+        });
         state.locations.forEach((location) => {
           const marker = L.circleMarker(location.coords, {
             radius: 6,
