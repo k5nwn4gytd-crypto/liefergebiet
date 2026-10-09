@@ -1079,6 +1079,7 @@
       ] },
     ];
     const defaultRadius = 50;
+    const locationViewRadiusMeters = 70000;
     const radiusMigrationKey = "radius-default-version";
     if (localStorage.getItem(radiusMigrationKey) !== "50-km-v1") {
       suppliers.forEach((supplier) => localStorage.setItem(`radius-${supplier.id}`, String(defaultRadius)));
@@ -1283,7 +1284,10 @@
       const userIcon = L.divIcon({ className: "", html: '<span class="user-marker"></span>', iconSize: [23, 23], iconAnchor: [11.5, 11.5] });
       userMarker = L.marker(coords, { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
       userMarker.bindPopup(`<div class="popup-title">Dein Standort</div><div class="popup-copy">${escapeHTML(label)}</div>`);
-      map.setView(coords, 10, { animate: true });
+      map.fitBounds(L.circle(coords, { radius: locationViewRadiusMeters }).getBounds(), {
+        padding: [32, 32],
+        animate: true
+      });
       document.getElementById("address").value = label;
       await findSuppliers();
     }
