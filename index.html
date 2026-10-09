@@ -87,7 +87,12 @@
     .legend-title { margin-bottom: 9px; font-size: 10px; font-weight: 800; }
     .legend-entry { display: flex; align-items: center; gap: 8px; margin-top: 7px; color: #555e57; font-size: 10px; }
     .legend-pin { width: 9px; height: 9px; border: 2px solid white; border-radius: 50%; background: #2875b8; box-shadow: 0 0 0 1px #2875b8; }
+    .legend-supplier { width: 9px; height: 9px; border: 2px solid white; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 1px var(--green); }
     .legend-ring { width: 12px; height: 12px; border: 1px solid #8c9b7d; border-radius: 50%; background: rgba(120, 145, 103, .16); }
+    .legend-toggle { display: flex; align-items: center; gap: 8px; margin-top: 9px; color: #555e57; font-size: 10px; cursor: pointer; }
+    .legend-toggle input { width: 14px; height: 14px; margin: 0; accent-color: var(--green); }
+    .location-cluster-icon { border: 0; background: transparent; }
+    .location-cluster { display: grid; place-items: center; width: 34px; height: 34px; border: 3px solid #fffefa; border-radius: 50%; color: #fff; background: var(--green); box-shadow: 0 1px 7px rgba(32, 42, 39, .38); font-family: "DM Mono", monospace; font-size: 10px; font-weight: 500; }
     .map-attribution { position: absolute; z-index: 500; bottom: 0; left: 0; padding: 3px 7px; color: #4f5850; background: rgba(255, 254, 250, .8); font-size: 9px; }
     .leaflet-popup-content-wrapper { border-radius: 6px; }
     .popup-title { margin-bottom: 4px; font-size: 12px; font-weight: 800; }
@@ -155,8 +160,10 @@
         <div id="map"></div>
         <div class="map-legend">
           <div class="legend-title">Kartenebenen</div>
+          <div class="legend-entry"><span class="legend-supplier"></span><span>Lieferantenstandort</span></div>
+          <div class="legend-entry"><span class="location-cluster"><span>12</span></span><span>Gebündelte Standorte</span></div>
+          <label class="legend-toggle"><input id="radius-toggle" type="checkbox"><span class="legend-ring"></span><span>Radien anzeigen</span></label>
           <div class="legend-entry"><span class="legend-pin"></span><span>Dein Standort</span></div>
-          <div class="legend-entry"><span class="legend-ring"></span><span>Gebündelter Radius je Lieferant</span></div>
         </div>
         <div class="map-attribution">Kartendaten &copy; OpenStreetMap-Mitwirkende</div>
       </section>
@@ -1035,6 +1042,8 @@
       radius: loadRadius(supplier.id),
       locations: []
     }]));
+    let locationLayer = L.layerGroup();
+    let showRadii = false;
     let userLocation = null;
     let userMarker = null;
 
@@ -1120,38 +1129,91 @@
     }
 
     function drawLayers() {
+      if (map.hasLayer(locationLayer)) map.removeLayer(locationLayer);
+      locationLayer.clearLayers();
       for (const layer of supplierLayers.values()) map.removeLayer(layer);
       supplierLayers.clear();
+      const visibleLocations = [];
       suppliers.forEach((supplier) => {
         const state = supplierState.get(supplier.id);
         if (!state.enabled) return;
         const group = L.layerGroup();
-        state.locations.forEach((location) => {
-          L.circle(location.coords, {
-            radius: state.radius * 1000,
-            color: supplier.color,
-            weight: 1,
-            opacity: .72,
-            fillColor: supplier.color,
-            fillOpacity: .025
-          }).addTo(group);
-        });
-        state.locations.forEach((location) => {
-          const marker = L.circleMarker(location.coords, {
-            radius: 6,
-            color: "#fffefa",
-            weight: 2,
-            fillColor: supplier.color,
-            fillOpacity: 1
+        if (showRadii) {
+          state.locations.forEach((location) => {
+            L.circle(location.coords, {
+              radius: state.radius * 1000,
+              color: supplier.color,
+              weight: 1,
+              opacity: .72,
+              fillColor: supplier.color,
+              fillOpacity: .025
+            }).addTo(group);
           });
-          marker.bindPopup(`<div class="popup-title">${escapeHTML(location.name)}</div><div class="popup-copy">${escapeHTML(supplier.name)}<br>${escapeHTML(location.address)}${location.distance != null ? `<br>${location.distance.toFixed(1).replace(".", ",")} km von deinem Standort` : ""}<br><a href="${mapsDirectionsUrl(location)}" target="_blank" rel="noreferrer">Route öffnen ↗</a></div>`);
-          marker.addTo(group);
-        });
+        }
         group.addTo(map);
         supplierLayers.set(supplier.id, group);
+        state.locations.forEach((location) => visibleLocations.push({ supplier, location }));
       });
+
+      const cells = new Map();
+      const zoom = map.getZoom();
+      visibleLocations.forEach((entry) => {
+        const point = map.project(entry.location.coords, zoom);
+        const key = `${Math.floor(point.x / 48)}:${Math.floor(point.y / 48)}`;
+        if (!cells.has(key)) cells.set(key, []);
+        cells.get(key).push(entry);
+      });
+
+      cells.forEach((entries) => {
+        const center = entries.reduce((sum, { location }) => [
+          sum[0] + location.coords[0] / entries.length,
+          sum[1] + location.coords[1] / entries.length
+        ], [0, 0]);
+        if (entries.length > 1) {
+          const marker = L.marker(center, {
+            title: `${entries.length} gebündelte Lieferantenstandorte`,
+            icon: L.divIcon({
+              className: "location-cluster-icon",
+              html: `<span class="location-cluster">${entries.length}</span>`,
+              iconSize: [34, 34],
+              iconAnchor: [17, 17]
+            })
+          });
+          marker.on("click", () => {
+            if (map.getZoom() < map.getMaxZoom()) {
+              map.setView(center, Math.min(map.getZoom() + 2, map.getMaxZoom()), { animate: true });
+              return;
+            }
+            const content = entries.map(({ supplier, location }) =>
+              `<div class="popup-copy"><strong>${escapeHTML(supplier.name)}</strong><br>${escapeHTML(location.address)}<br><a href="${mapsDirectionsUrl(location)}" target="_blank" rel="noreferrer">Route öffnen ↗</a></div>`
+            ).join("<hr>");
+            marker.bindPopup(content).openPopup();
+          });
+          marker.addTo(locationLayer);
+          return;
+        }
+
+        const { supplier, location } = entries[0];
+        const marker = L.circleMarker(location.coords, {
+          radius: 6,
+          color: "#fffefa",
+          weight: 2,
+          fillColor: supplier.color,
+          fillOpacity: 1
+        });
+        marker.bindPopup(`<div class="popup-title">${escapeHTML(location.name)}</div><div class="popup-copy">${escapeHTML(supplier.name)}<br>${escapeHTML(location.address)}${location.distance != null ? `<br>${location.distance.toFixed(1).replace(".", ",")} km von deinem Standort` : ""}<br><a href="${mapsDirectionsUrl(location)}" target="_blank" rel="noreferrer">Route öffnen ↗</a></div>`);
+        marker.addTo(locationLayer);
+      });
+      locationLayer.addTo(map);
       if (userLocation && userMarker) userMarker.bringToFront();
     }
+
+    document.getElementById("radius-toggle").addEventListener("change", (event) => {
+      showRadii = event.currentTarget.checked;
+      drawLayers();
+    });
+
+    map.on("zoomend", drawLayers);
 
     function renderResults() {
       const list = document.getElementById("results-list");

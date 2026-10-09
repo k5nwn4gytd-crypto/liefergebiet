@@ -1,8 +1,9 @@
 # liefergebiet
 
 Die Lieferantenkarte zeigt nach einer Standortsuche die nächste in OpenStreetMap
-gefundene Abholstation samt Adresse für jeden Lieferanten. Die Karten-Schalter
-blenden jeweils Lieferant, Stationen und deren gebündelte Lieferradius-Fläche ein
-oder aus; der bearbeitbare Radius gilt für alle gefundenen Stationen eines
-Lieferanten. Die schriftliche Stationsliste bleibt unabhängig von den
-Karten-Schaltern vollständig.
+gefundene Abholstation samt Adresse für jeden Lieferanten. Nahe Standorte werden
+auf der Karte abhängig von der Zoomstufe gebündelt und beim Hineinzoomen einzeln
+sichtbar. Lieferanten lassen sich über die Karten-Schalter ein- und ausblenden;
+Radien sind standardmäßig ausgeblendet und können separat eingeblendet werden.
+Der bearbeitbare Radius gilt für alle Stationen eines Lieferanten. Die
+schriftliche Stationsliste bleibt unabhängig von den Karten-Schaltern vollständig.
