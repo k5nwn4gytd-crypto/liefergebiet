@@ -1278,13 +1278,30 @@
       return { coords: [Number(results[0].lat), Number(results[0].lon)], label: results[0].display_name };
     }
 
+    function boundsAroundLocation(coords, radiusMeters) {
+      const earthRadiusMeters = 6371008.8;
+      const angularRadius = radiusMeters / earthRadiusMeters;
+      const latitude = coords[0] * Math.PI / 180;
+      const longitude = coords[1] * Math.PI / 180;
+      const south = Math.max(-Math.PI / 2, latitude - angularRadius);
+      const north = Math.min(Math.PI / 2, latitude + angularRadius);
+      const longitudeRadius = south === -Math.PI / 2 || north === Math.PI / 2
+        ? Math.PI
+        : Math.asin(Math.sin(angularRadius) / Math.cos(latitude));
+      const degrees = 180 / Math.PI;
+      return L.latLngBounds(
+        [(south * degrees), (longitude - longitudeRadius) * degrees],
+        [(north * degrees), (longitude + longitudeRadius) * degrees]
+      );
+    }
+
     async function setLocation(coords, label) {
       userLocation = coords;
       if (userMarker) map.removeLayer(userMarker);
       const userIcon = L.divIcon({ className: "", html: '<span class="user-marker"></span>', iconSize: [23, 23], iconAnchor: [11.5, 11.5] });
       userMarker = L.marker(coords, { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
       userMarker.bindPopup(`<div class="popup-title">Dein Standort</div><div class="popup-copy">${escapeHTML(label)}</div>`);
-      map.fitBounds(L.circle(coords, { radius: locationViewRadiusMeters }).getBounds(), {
+      map.fitBounds(boundsAroundLocation(coords, locationViewRadiusMeters), {
         padding: [32, 32],
         animate: true
       });
@@ -1298,11 +1315,19 @@
       if (!address) return;
       const feedback = document.getElementById("search-feedback");
       feedback.textContent = "Standort wird ermittelt …";
+      let result;
       try {
-        const result = await geocodeAddress(address);
-        await setLocation(result.coords, result.label);
+        result = await geocodeAddress(address);
       } catch (error) {
         feedback.textContent = error.message === "Standort nicht gefunden" ? "Kein passender Standort gefunden. Bitte Eingabe präzisieren." : "Standort konnte nicht ermittelt werden. Bitte Verbindung prüfen.";
+        console.error(error);
+        return;
+      }
+      try {
+        await setLocation(result.coords, result.label);
+      } catch (error) {
+        feedback.textContent = "Standort wurde gefunden, aber die Karte konnte nicht aktualisiert werden.";
+        console.error(error);
       }
     });
 
